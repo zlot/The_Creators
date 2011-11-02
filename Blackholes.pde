@@ -13,8 +13,8 @@ class BlackHole {
   PVector vel = new PVector(0,0,0);
   PVector acc = new PVector(-0.0001, 0.01, 0.0000001);
   Vec3D position = new Vec3D(0,0,0); // used to update position of attractor. use position.set().
-  int attractorRadius = 300;
-  float strength = 1;
+  int attractorRadius = 900;
+  float strength = 5.5;
   float jitter = 0;
   float topSpeed = 1;
   AttractionBehavior blackholeAttractor;
@@ -48,13 +48,12 @@ class BlackHole {
     // if strength positive, sucks. if negative, blows
     if(strength > 0) {
       fill(0);
-      sphere(60);
+      sphere(100);
     } else {
       // superEllipsoid slows down framerate by about 10fps!
-      fill(255);
       //draw reactive black hole
-      fill(map(peak,0,4,140,255));
-      scale(constrain(peak,0,1.2));
+      fill(map(peak,0,5,140,255),map(peak,0,5,0,100));
+      scale(constrain(peak,0,1.7));
       gfx.mesh(whiteBlackHole, true, 40);        
     }
     popStyle();
@@ -78,11 +77,12 @@ class BlackHole {
   void addToPosition(PVector posAddition) {
     PVector newPosition = getPosition();
     newPosition.add(posAddition);
-    iFrame.setPosition(newPosition);
+    setPosition(newPosition);
   }
   
   void setPosition(PVector pos) {
     iFrame.setPosition(pos); 
+    if(PVector.dist(iFrame.position(), new PVector(0,0,0)) > WORLD_RADIUS/3.6) iFrame.setPosition(new PVector(0,0,0));
   }  
   void addBehavior() {
     physics.addBehavior(blackholeAttractor);  

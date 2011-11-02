@@ -13,21 +13,17 @@
             
 /*----------------------------------------------------------------------*/
 
-// TODO:: Explode the planets correctly.
-// TODO:: I WILL need new planetPhysics per textured planet! Because all planets are really at pv(0,0,0). So adding a crusher on the one system
-//          actually means that ALL textured planets respond to that crusher.
 
-// TODO:: Spring physics mesh on wireframes?
 // TODO:: Could perhaps instead of each particle getting an AttractionBehaviour, it could be simulated instead by using SimplexNoise + an offset?
-
 // TODO:: slithery snake? spring'd snake slithers past like a comet?
 // TODO:: Try to work out an algorithm for having the black hole move towards groups/the center of the particles
-// TODO:: Learn and make the lighting better.
-// TODO:: Find something decent to replace the 2nd black hole
-// TODO:: checkIntro() in draw. Clean all this up!
 // TODO:: constraint on particles to avoid going through planets?
 // TODO:: GLOBEDETAIL in wireframeplanet: was 16, can it deal with 32? Also globeDetail in GPUPlanet2. Connected to calcSphereCoords. Was 32, now 60 ...
 
+// DONE:: Explode the planets correctly.
+// DONE:: Fix mutitouch gestures!!
+// DONE:: allow for 3-finger selection of textured planets as well.
+// DONE:: Learn and make the lighting better.
 
 import toxi.geom.*;
 import toxi.geom.mesh.*;
@@ -44,6 +40,18 @@ import tuioZones.*;
 import TUIO.*;
 import oscP5.*;
 import netP5.*; 
+
+
+/***** INITIAL PARAMETERS *****/
+final boolean PLAY_BEGINNING = true;
+final int WORLD_RADIUS = 8200; // was 9200
+final float PLANET_SPEED = random(0.4,0.7); // speed that all planets slowly move 
+///////final int NEW_WIREFRAME_RADIUS = round(random(60,100)); // size when new planet is created via attractor
+final boolean SHOW_FRAMERATE = false;
+final int NUM_INIT_WIREFRAMES = 4;
+final int NUM_INIT_GPU2PLANETS = 5;
+final int INTRO_TIME = 1050; // was 350. // timeout before screensaver starts
+
 
 OscP5 oscP5;
 NetAddress myRemoteLocation;
@@ -63,21 +71,20 @@ ArrayList<GPUPlanet2> GPUPlanetList2 = new ArrayList<GPUPlanet2>();
 
 WireframePlanet planet;
 WireframePlanet selectedPlanet; // planet that is currently the scene's interactive frame.
+GPUPlanet2 selectedGPUPlanet;
 
-final int WORLD_RADIUS = 9200;
 WorldSphere worldSphere;
 StarSphere starSphere;
 DefaultSceneView defaultSceneView; // class holding a single scene as default camera view. See TuioZones tab.
 
-float jitter = 65; // very important! jitter intensity of planets to frequencies.
+float jitter = 50; // very important! jitter intensity of planets to frequencies.
 
 GLGraphics renderer;
 
+float lightSpecular[] = {0,222,222,1}; // specular adds a 'shiny' spot to your models // FOR LIGHTING.
 
-//////////////////
-//VerletPhysics planetPhysics;
-HashMap<Integer, VerletPhysics> planetPhysicsMap;
-int planetPhysicsMapCounter = 0;
+
+HashMap<Integer, VerletPhysics> planetPhysicsMap; // holds the physics necessary for GPUPlanet2's
 
 void setup() {
   size(screen.width, screen.height, GLConstants.GLGRAPHICS);
@@ -89,13 +96,11 @@ void setup() {
 
   scene = new Scene(this);
   scene.setRadius(WORLD_RADIUS);
-  scene.setAxisIsDrawn(false);
-  scene.setGridIsDrawn(false);
-  scene.enableMouseHandling(false);
+  scene.setAxisIsDrawn(false); scene.setGridIsDrawn(false); scene.enableMouseHandling(false);
   scene.setInteractiveFrame(new InteractiveFrame(scene));  
 
   /***** TUIO *****/
-  zones=new TUIOzoneCollection(this);
+  zones = new TUIOzoneCollection(this);
   tuioHandler = new TuioHandler();  
   /***** OSC *****/
   oscP5 = new OscP5(this, 12000);
@@ -121,9 +126,11 @@ void setup() {
   /* attractor setup */
   a = new Attractor();   
 
-  for (int i=0; i<7; i++) 
+  for (int i=0; i<NUM_INIT_WIREFRAMES; i++) 
     planet = new WireframePlanet();
+    
 
+    
   /* create world sphere */
   worldSphere = new WorldSphere();
   /* create star sphere */
@@ -131,39 +138,51 @@ void setup() {
   /* calc sphere coords one last time to control textured planet tex-coords */
   calcSphereCoords(60, WORLD_RADIUS);
   
+  
+
+  
+  
+///////////////////
+///////////
+//////// TESTING ONLY CREATE RANDOM NEW TEXTURED PLANETS
+GPUPlanet2 gpuPlanet2;
+for (int i=0; i<NUM_INIT_GPU2PLANETS; i++) {
+    WETriangleMesh mesh = new WETriangleMesh();
+    mesh.addMesh(new Sphere(100).toMesh(16));
+    PVector p = new PVector(random(-1300,1300),random(-1300,1000),random(-1300,1300));
+    PVector vel = new PVector(random(3),random(3),random(3));  
+    gpuPlanet2 = new GPUPlanet2(mesh,p,vel);
+  }
+/////////////
+  
+  
   // setup default camera position for double-tab gesture.
   defaultSceneView = new DefaultSceneView();
 
-  noFill();
-  renderer = (GLGraphics)g; // might need to be put in draw() ...
-  
+  noFill();  
 
   scene.camera().interpolateTo(defaultSceneView.getFrame()); // interpolate to default view to begin
+
 }
 
 
-////////
 
 void draw() {
-///////////////////////  
-//for(VerletPhysics planetPhysics : planetPhysicsMap)
-  //  planetPhysics.update();
-////////
+  renderer = (GLGraphics) g;
+     
+  if(SHOW_FRAMERATE) if(frameCount % 100 == 0) println(frameRate);
   
-
-  if(frameCount % 100 == 0) println(frameRate);
- // checkIntro();
+  checkIntro();
   if (intro == false || introCounterCounter <=1) {
     if (scrunch5_dis >= 100) {
       background(255, 0, 0);
     } else {
       background(0);
     }
-  }
-    
+  }  
   tuioUpdate();  // runs entire tuio operation
 
-  bang(); // AudioPeak
+//bang(); // AudioPeak note:: dont run this except for testing!!
 
   /***** draw blackholes *****/
   blackHoleIn.draw();
@@ -175,15 +194,15 @@ void draw() {
   pushMatrix();
   /***** draw vortexes *****/
   for(int i = 0; i < vortexesQueue.size(); i++)
-    vortexesQueue.get(i).draw(true); // show vortexes = true.
+    vortexesQueue.get(i).draw(false); // show vortexes = false.
 
 
 /////////////////  // every once in a while, create a new vortex
-//  if (frameCount % 60 == 0) {
-//    if (int(random(100)) <= 20) {
-//      vortexesQueue.offer(new Vortex());
-//    } 
-//  } 
+  if (frameCount % 60 == 0) {
+    if (int(random(100)) <= 20) {
+      vortexesQueue.offer(new Vortex());
+    } 
+  } 
 
 
   drawPlanetIfSelected();
@@ -196,17 +215,19 @@ void draw() {
   }
   
   // every once in a while, create a new random planet
-  if(frameCount % 2000 == 0) {
+  if(frameCount % 5000 == 0) {
     PVector randPos = new PVector(random(-1300,1300),random(-1300,1000),random(-1300,1300));
-    WireframePlanet p = new WireframePlanet(randPos,15);  
+    WireframePlanet p = new WireframePlanet(randPos,newWireframeRadius());  
   }
-  
-  
+    
   popMatrix();
+
+  //draw attractor sphere
+  if(attractorEnabled) a.draw(); 
 
   // Switches to pure OpenGL mode
   renderer.beginGL();
-  /***** render lighting, but only if intro is not happening *****/
+  /***** render lighting *****/
   if(!intro) glLightingGo(renderer);
   
   /***** draw world sphere *****/
@@ -214,74 +235,64 @@ void draw() {
     worldSphere.draw(renderer);
     starSphere.draw(renderer);
   }
-  
-  
-  if(easterEgg) {
+
+ /* if(easterEgg) {
     for (int i = 0; i < planetList.size(); i++)
       planetList.get(i).createEasterEgg();
     easterEgg = false;
-  }
+  }*/
   
   pushMatrix();
   
   // CONTROL EASTER EGG DRAWING
-  if(GPUPlanetList.size() > 0) {
+ /* if(GPUPlanetList.size() > 0) {
     for (int i = 0; i < GPUPlanetList.size(); i++) {
       if (intro == false) {
       GPUPlanetList.get(i).draw(renderer, i);  
       }
     }
-  }
+  }*/
   
   /***** draw textured planets *****/  
   for (int i = 0; i < GPUPlanetList2.size(); i++) {
     if (intro == false)
       GPUPlanetList2.get(i).draw(renderer, i);  
   } 
+  drawPlanetIfSelected2(renderer);
   
   popMatrix();
   
   // Back to processing
   renderer.endGL();    
 
-  //draw attractor sphere
-  if(attractorEnabled) a.draw(); 
   gui();
   
-  noiseIncrementer();
+  /****** no use for noise at the moment ... */
+  //noiseIncrementer();
+  
 /*--- CLOSE OF DRAW FUNCTION HERE ---*/
 }
 
-
+/*
 float NS = 0.05f; // noise scale (try from 0.005 to 0.5)
-float noiseVal = 0;
+float noiseVal = 0.5;
 int noiseInc = 0;
 
 void noiseIncrementer() {
   noiseVal = (float) SimplexNoise.noise(NS*noiseInc, 0); 
   noiseInc = noiseInc % 100 == 0 ? 1 : ++noiseInc;
 }
+*/
 
 void drawPlanetIfSelected() {
  if(selectedPlanet != null) {
    // temporarily remove selected planet from planet list so doesn't get double-drawn.
    planetList.remove(selectedPlanet);
    
-////*********** REVIEW THIS
-////*************
    if(scene.interactiveFrameIsDrawn()) {
-     // else, planet selection mode on
-     if(selectedPlanet.positionFlag()) {
-       //scene.interactiveFrame().setPosition(selectedPlanet.getPosition());
-       selectedPlanet.positionFlag(false);
-     }
-     selectedPlanet.drawInteractiveFrame(1); // the '1' here refers to the 'planet number' for frequency jitter. Should be dynamic; atm its just 1.
-   }
-   else {
-     if(!selectedPlanet.positionFlag()) {
-       selectedPlanet.setPosition(scene.interactiveFrame().position());
-       selectedPlanet.positionFlag(true);
-     }
+     if(selectedPlanet != null)
+       selectedPlanet.drawInteractiveFrame(round(random(0,freqs.length-1)));
+   } else {
      // re-add the selected planet into planetList to draw normally.
      planetList.add(selectedPlanet);
      selectedPlanet = null;
@@ -290,15 +301,27 @@ void drawPlanetIfSelected() {
 }
 
 
+void drawPlanetIfSelected2(GLGraphics renderer) {
+ if(selectedGPUPlanet != null) {
+   if(scene.interactiveFrameIsDrawn()) {
+     selectedGPUPlanet.drawInteractiveFrame(renderer, round(random(0,freqs.length-1)));
+   } else {
+     selectedGPUPlanet = null;
+   }		
+  }
+}
 
 
-void glLightingGo(GLGraphics renderer) {
+
+
+/* old, here to revert to if necessary */
+void glLightingGo2(GLGraphics renderer) {
   // will cast the black shaddow on side of spheres.
   renderer.gl.glEnable(GL.GL_LIGHTING);
 
   // Disabling color tracking, so the lighting is determined using the colors
   // set only with glMaterialfv()
-  renderer.gl.glDisable(GL.GL_COLOR_MATERIAL);
+  //renderer.gl.glDisable(GL.GL_COLOR_MATERIAL);
 
   // for all this gl stuff see Toxiclibs example in GLGraphics > Integration
   // Enabling color tracking for the specular component, this means that the 
@@ -312,23 +335,69 @@ void glLightingGo(GLGraphics renderer) {
   renderer.gl.glEnable(GL.GL_LIGHT0);
   // the next two floats are rgb colours ({r,g,b,a}, 0?)
   // AMBIENT sets the colour on the non-litup side
-  renderer.gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[] {0.1, .1, 0.5, 1}, 0);
+  //renderer.gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[] {0.1, .1, 0.5, 1}, 0);
 
-  // back-type colour
+  // back-type colour (controls the purple/blue)
   renderer.gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[] {0, 0, 1, 1}, 0);  
   
-  // light position float[] {x?,y?,z?, strength? (between 0 and 1?)}
- 
-  renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, new float[] {
-   map(tcurX, 0, width, -WORLD_RADIUS*1.5, WORLD_RADIUS*1.5),
-   map(tcurY, 0, height, -WORLD_RADIUS*1.5, WORLD_RADIUS*1.5),
-   map(tcurY, 0, height, WORLD_RADIUS, -WORLD_RADIUS), 0}, 0);
-     
   renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, new float[] {-1000, 600, 2000, 0 }, 0);
    
   // how does this work? This is causing the ugly drop-off razor of shadow. Want it smooth!
   // changing the first number makes some cool colour effects. Usually 1.
-  renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {211, 1, 1, 1}, 0);
+  //renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {211, 1, 1, 1}, 0);
 }
 
 
+void glLightingGo(GLGraphics renderer) {
+  // will cast the black shaddow on side of spheres.
+  renderer.gl.glEnable(GL.GL_LIGHTING);
+
+  //renderer.gl.glDisable(GL.GL_COLOR_MATERIAL);
+  renderer.gl.glEnable(GL.GL_COLOR_MATERIAL);
+  renderer.gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR);  
+
+  renderer.gl.glEnable(GL.GL_LIGHT0);
+
+  // color4f is an array of floats such that {r,g,b,a}
+  float lightAmbient[] = {0.2,0,0,1}; // ambient lets a light illuminate every point in a scene
+  float lightDiffuse[] = {0,0,1,1}; // diffuse lets a light illuminate objects around it
+
+// controls fancy colours of space!
+//if(frameCount % 1400 == 0) {
+//  lightSpecular[0] = random(0,255);
+//  lightSpecular[1] = random(0,255);
+//  lightSpecular[2] = random(0,255);
+//  lightSpecular[3] = 1;
+//}
+
+  float matAmbient[] = {1,1,1,1}; // default {1,1,1,1}
+  float matDiffuse[] = {0,0,1,1}; //{0.5,0.7,0.7,1} colourful stars?
+  float matSpecular[] = {1,1,1,1};
+  
+  float lightPosition[] = {0,0,2000,0}; // the 0 on the end here makes all the difference! if its 1 its completely different
+  // http://www.oogtech.org/content/tag/gl_spot_exponent/ says 0 is to create a direction light like the sun, 1 to create a positional light like a fireball.
+  
+  float lightDirection[] = {0,0,-1}; // color 3f
+  
+  renderer.gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, matAmbient, 0);
+  renderer.gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, matDiffuse, 0); // controls lighting of stars. new float[]{r,g,b,a?},0);  
+ // renderer.gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, matSpecular, 0); 
+  
+//  renderer.gl.glMaterialf(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, 20f); 
+
+ // if(frameCount >= 200) renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[]{0.1,0.1,0.1,1}, 0); // controls making other side not so pitch-dark.
+  
+  renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, lightDiffuse, 0);  
+  renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, lightSpecular, 0);   
+
+  renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, lightPosition, 0);
+  renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPOT_DIRECTION, lightDirection, 0);
+  renderer.gl.glLightf(GL.GL_LIGHT0, GL.GL_SPOT_CUTOFF, 180f);
+  renderer.gl.glLightf(GL.GL_LIGHT0, GL.GL_SPOT_EXPONENT, 128); // exponent is 0-128. high exponent values make the light stronger in the middle of the light cone
+ 
+}
+
+
+int newWireframeRadius() {
+  return(round(random(60,100)));  
+}

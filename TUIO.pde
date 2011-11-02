@@ -14,7 +14,7 @@ int tcurXforZ = 0;
 int tcurYforZ = 0;
 PVector t1;
 PVector t2;
-PVector tcur;
+//PVector tcur;
 
 float totaal, average;
 float easing = 0.1;
@@ -22,7 +22,7 @@ float easing = 0.1;
 float scrunch5;
 float scrunch5_init; 
 float scrunch5_dis;
-boolean scrunch5b = false; 
+boolean scrunch5EntryPoint = false; 
 
 //PVector to        = new PVector();
 //PVector pto       = new PVector();
@@ -102,7 +102,7 @@ void gesturesChecker() {
 /*----------------------------------------------------------------------*/
 
 
-/* pieters */
+/* pieters *//*
 void drawTuioZoneCursors() {
   tuioCursorList=zones.getPoints();
   if (tuioCursorList.length>0) {
@@ -110,7 +110,7 @@ void drawTuioZoneCursors() {
       ellipse(tuioCursorList[i][0], tuioCursorList[i][1], 20, 20);
     }
   }
-}
+}*/
 
 /* see gui() in controlP5 tab */
 void drawGestures() {

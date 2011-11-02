@@ -7,7 +7,7 @@ class Attractor {
   AttractionBehavior attractionBehavior;
   Vec3D attractorPosition = new Vec3D(0,0,0);
   int attractorRadius = 900; //radius of attractor
-  float strength = 4;
+  float strength = 9;
   float jitter = 0.00001f;
   PVector oldPosition;
   float rotatorInc = 0;
@@ -49,7 +49,7 @@ class Attractor {
     pushStyle();
     scene.interactiveFrame().applyTransformation(); // makes it appear wherever tuiocursor is (but initial cursor still becomes origin?!)
     noFill();
-    stroke(0,255,0,200);
+    stroke(255,255,255,100);
     rotateX(radians(rotatorInc));rotateY(radians(rotatorInc));rotateZ(radians(rotatorInc));
     sphere(tempAttractorRadius);
     popStyle();
@@ -71,16 +71,17 @@ class Attractor {
   }  
 
   /* draw the attractor & activate behaviour if scruch gesture has been performed. See TuioZones tab */
-  void toggleDrawInteractiveFrame() {
+  void toggleDrawInteractiveFrame(int tcurX, int tcurY) {
     scene.setDrawInteractiveFrame(true); // turn on interactiveFrame manipulation
     attractorEnabled = !attractorEnabled;
     attractorMode = !attractorMode;
     if(attractorEnabled) {
+      moveAttractor(tcurX, tcurY);
       a.addBehavior();
     } else {
       a.removeBehavior(); 
       // if have enough particles, make a planet at this position
-      planet = new WireframePlanet(a.getPosition(), 60);
+      planet = new WireframePlanet(a.getPosition(), newWireframeRadius());
       scene.setDrawInteractiveFrame(false);
     }
   }

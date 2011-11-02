@@ -5,8 +5,6 @@ class WireframePlanet {
   // mesh class used to create the mesh and also to use subdivision methods
   private WETriangleMesh mesh;
   private Collection<Vertex> verticesList;
-  private float noiseOffset = int(random(-10,10)); // to make each planet unique in jitter
-  boolean positionFlag = true; // switch position from interactiveframe/and not.
   boolean lookingAt = false; // flag when planet is being looked at but NOT when selected in world-view.
   float currentScale = 1; // scale of planet. When gets too big, destroy!
   float scaleInc; // increment the planet scales up from.
@@ -29,7 +27,7 @@ class WireframePlanet {
   /***** CONSTRUCTORS *****/
   WireframePlanet() {
     radius = 50; // default.
-    initInteractiveFrame(new PVector(random(-1300,1300),random(-1300,1000),random(-1300,1300)));
+    initInteractiveFrame(new PVector(random(-1300,1300),random(-1300,1300),random(-1300,1300)));
     initMesh(radius, GLOBEDETAIL);
     scaleInc = setScaleInc();
     sizeTooBig = setSizeTooBig();
@@ -67,11 +65,10 @@ class WireframePlanet {
   /* occasionally update the neg behaviour to match the size of the planet */
   void updateAttNegBehavior() {
     physics.removeBehavior(planetAttractorNeg);
-    planetAttractorNeg = new AttractionBehavior(attractorPosition, getRadius(), -6, 0);
+    planetAttractorNeg = new AttractionBehavior(attractorPosition, getRadius()*1.5, -6, 0);
     physics.addBehavior(planetAttractorNeg);
   }
   void explodeTheParticles() {
-    println("EXPLODED");
     physics.removeBehavior(planetAttractor);
     exploderBehavior = new AttractionBehavior(attractorPosition, getRadius(), -65, 0);
     physics.removeBehavior(exploderBehavior);
@@ -130,7 +127,7 @@ class WireframePlanet {
     iFrame = new InteractiveFrame(scene);
     iFrame.setGrabsMouseThreshold(30);
     iFrame.setPosition(pos); // position in space
-    vel = new PVector(random(-0.5,0.5),random(-0.5,0.5), random(-0.5,0.5));
+    vel = new PVector(random(-PLANET_SPEED,PLANET_SPEED),random(-PLANET_SPEED,PLANET_SPEED), random(-PLANET_SPEED,PLANET_SPEED));
   } 
   /* Convenience method */
   void setPosition(PVector pos) {
@@ -159,7 +156,7 @@ class WireframePlanet {
     scaleMesh();
     updateAttractorPosition();
     if(frameCount % 180 == 0) {
-      if(random(1) < 0.1) explodeTheParticles();
+      if(random(1) < 0.0) explodeTheParticles();
       updateAttNegBehavior();
     }
     updateVerticesList(); // always appear at the end. Needed to jitter mesh
@@ -217,9 +214,10 @@ class WireframePlanet {
   void jitterMesh(int planetNumber) {
     for (Vec3D v : verticesList) {
       float r = random(1);
-      if (r < 0.3) {
-       float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
-       v.jitter(mappedF * (3*r));
+      ////// SHOULD ALL VERTICES MOVE OR JUST SOME? PLAY WITH THIS!
+      if (r < 0.4) {
+        float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
+        v.jitter(mappedF * (2.8*r)); // play with multiplier for more/less jitter
       }
     }
   }
@@ -237,16 +235,9 @@ class WireframePlanet {
 
 
   void setAsInteractiveFrame(boolean is) {
-   // isInteractiveFrame = is;
     selectedPlanet = this;
   }
-  
-  void positionFlag(boolean flag) {
-    positionFlag = flag;
-  }
-  boolean positionFlag() {
-    return positionFlag;  
-  }
+
   
   void rebuildIndex() {
     mesh.rebuildIndex();

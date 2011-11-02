@@ -1,11 +1,9 @@
-final String WORLD_BACKGROUND = "textures/background4.png";
-ArrayList<GLTexture> loadedTextures;
+ final String WORLD_BACKGROUND = "textures/background4.png";
+ ArrayList<GLTexture> loadedTextures;
 
-
-  
- /**
-  * preload all textures into loadedTextures.
-  */
+/**
+ * preload all textures into loadedTextures.
+ */
 public void loadTextures() {
   loadedTextures = new ArrayList<GLTexture>();
   gestureImage = loadImage("gestures.png"); // gesture intro image
@@ -27,15 +25,13 @@ public void loadTextures() {
     //println("Name of texture: " + fileAtIndex.getName());
   }
   
-/***** FIX THIS!!! ONLY ONE TEXTURE JUST SO IT LOADS FASTER.
-********
-*******
-*/
+/***** FOR TESTING PURPOSES: pre-load just one texture to speed up boot-time.
   loadedTextures.add(new GLTexture(ProcessingCanvas, textureNames[0]));
-/*** UNCOMMENT THIS FOR PRODUCTION!! ***/
-//  for(String s : textureNames) {
-//    loadedTextures.add(new GLTexture(ProcessingCanvas, s));
-//  }
+  //if this is used, comment-out the below for-loop (which pre-loads all textures)
+*/
+  for(String s : textureNames) {
+    loadedTextures.add(new GLTexture(ProcessingCanvas, s));
+  }
 }
 
 
@@ -45,8 +41,7 @@ public File[] listFiles(String picturePath) {
   if (file.isDirectory()) {
     File[] files = file.listFiles();
     return files;
-  } else {
-    // If it's not a directory
+  } else { // If it's not a directory
     return null;
   }
 }

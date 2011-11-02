@@ -1,4 +1,5 @@
 /***** THIS PLANET CREATES THE PLANET EXACTLY LIKE THE SHAPE OF THE MESH *****/
+int planetPhysicsMapCounter = 0; // needed to keep track of hashmaps of planets!
 
 class GPUPlanet2 {  
   private InteractiveFrame iFrame;
@@ -8,12 +9,13 @@ class GPUPlanet2 {
   private int initWidth = 10; 
   private int age = 0; // age
 /////////////  
-  private int die = 700; // was 1500.
+  private int die = round(random(900,1500)); // was 1500.
   private PVector vel; // controls planet movement
-  private float rOffset = random(0.0001, 0.001); // rotation offset
+  private float rOffset = random(0.0001, 0.015); // rotation offset
   float[] verts; // flattened array of vertices from toxiclibs mesh
   int hashId; 
   VerletPhysics planetPhysics;
+  int altPlanetType; // EITHER 0 OR 1.
   
   GPUPlanet2(WETriangleMesh _mesh, PVector position, PVector _vel) {
     initInteractiveFrame(position);
@@ -21,6 +23,7 @@ class GPUPlanet2 {
     createPlanet(mesh);
     vel = _vel;
     GPUPlanetList2.add(this); // add to planet list.
+    altPlanetType = round(random(0,1));
   }
   
   void initInteractiveFrame(PVector position) {
@@ -61,9 +64,9 @@ class GPUPlanet2 {
     model.endUpdateColors(); 
     
     // colour on dark side of planets
-    //model.setEmission(33,100);
+    model.setEmission(33,100);
 
-    model.setReflection(color(0,0,255), 255) ;
+    //model.setReflection(color(0,0,255), 255) ;
 
     // Setting model shininess.
     // TODO: try setting other parameters on the model here!
@@ -84,7 +87,8 @@ ArrayList<VerletParticle> particleList;
     particleList = new ArrayList<VerletParticle>();
     planetPhysics = new VerletPhysics();
     planetPhysics.setDrag(PARTICLE_DRAG);  
-    // for each vert of this planet, create a corresp particle in planetPhysics 
+    
+    // for each vert of this planet, create a corresponding particle in planetPhysics 
     for (int i = 0; i < verts.length/4; i++) {
       vertPos = new Vec3D(verts[4 * i], verts[4 * i + 1], verts[4 * i + 2]);
       vec3DList.add(vertPos);
@@ -106,6 +110,7 @@ ArrayList<VerletParticle> particleList;
     hashId = planetPhysicsMapCounter;
     planetPhysicsMap.put((Integer)hashId, planetPhysics);
     planetPhysicsMapCounter++;
+    
   }
   
   
@@ -119,17 +124,34 @@ ArrayList<VerletParticle> particleList;
     Number of ideas to improve this:
      Use SimplexNoise to make a levelled-out randomisation, akin to an actual planet surface
     -----*/  
+    // take the places of the vertex's and place into particle positions??
+    for (int i = 0; i < verts.length/4; i++) {
+
+    }
+
+    float jiggleFactor = 4.1;//float jiggleFactor = 0.7 / constrain(peak,1,4); // the idea is to constrain the jiggle the more general background noise in the room there is. See OSC tab for peak.
     // take the particle postions and update the place of the vertex in the model, adding a jitter effect via mappedF.
+    
+    
     for(int i = 0; i < vec3DList.size(); i++) {
         Vec3D vertexVec3D = particleList.get(i);
-        verts[4*i] = vertexVec3D.x + mappedF*random(-10.6,10.6);
-        verts[4*i+1] = vertexVec3D.y + mappedF*random(-10.6,10.6);
-        verts[4*i+2] = vertexVec3D.z + mappedF*random(-10.6,10.6);
+
+        // now, update the particles to the placement of vertexes
+        if(altPlanetType == 1) {
+          vertexVec3D.x = verts[4*i];
+          vertexVec3D.y = verts[4*i+1];
+          vertexVec3D.z = verts[4*i+2];
+        }
+
+        // update the vertexes to placement of particles
+        verts[4*i] = vertexVec3D.x + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01; // + mappedF*0.01 moves the planet in a funny arc
+        verts[4*i+1] = vertexVec3D.y + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
+        verts[4*i+2] = vertexVec3D.z + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
     }
     model.beginUpdateVertices();
       for (int i = 0; i < verts.length/4; i++) {
-        model.updateVertex(i, verts[4 * i], verts[4 * i + 1], verts[4 * i + 2]);
-      }
+        model.updateVertex(i, verts[4 * i], verts[4 * i + 1], verts[4 * i + 2]);  
+    }
     model.endUpdateVertices();
   }
   
@@ -142,7 +164,7 @@ ArrayList<VerletParticle> particleList;
 
   void draw(GLGraphics renderer, int planetNum) {
     pushMatrix();
-
+    
     if(age < 255) { // fade-in effect
       model.beginUpdateColors();
         for (int i = 0; i < verts.length/4; i++) model.updateColor(i, 255, 255, 255, opacity);
@@ -153,26 +175,6 @@ ArrayList<VerletParticle> particleList;
     iFrame.translate(vel.x,vel.y,vel.z);  // moves the planet.
     iFrame.applyTransformation();
     rotate(frameCount*rOffset);
-
-    // dodge implementation. need to fix this.
-    // making the updateColor run only once when the mouse moves onto, and then off a planet.
-    if (iFrame.grabsMouse()) {
-      if(!runOnce) {      
-        //model.beginUpdateColors();
-        //for (int i = 0; i < numOfVertices; i++) model.updateColor(i, 255, 0, 0, 1);
-   //     model.setColors(255,0,0);
-        //model.endUpdateColors(); 
-        runOnce = true;
-      }
-    } else if (!iFrame.grabsMouse()) {
-        if(runOnce) {   
-          //model.beginUpdateColors();
-          //for (int i = 0; i < numOfVertices; i++) model.updateColor(i, 0, 255, 0, 225);
-  //        model.setColors(255);
-          //model.endUpdateColors(); 
-          runOnce = false;
-        }
-    }
     
     jitter(planetNum);
      /*-----
@@ -180,9 +182,9 @@ ArrayList<VerletParticle> particleList;
      Disabling depth masking to properly render semitransparent
      particles without need of depth-sorting them.    
      -----*/
-    //renderer.setDepthMask(false);
+    renderer.setDepthMask(false);
     renderer.model(model);
-    //renderer.setDepthMask(true);
+    renderer.setDepthMask(true);
     popMatrix();
     
     updatePhysics();
@@ -193,19 +195,22 @@ ArrayList<VerletParticle> particleList;
     }
   }
   
+  void drawInteractiveFrame(GLGraphics renderer, int planetNumber) {
+    scene.interactiveFrame().setPosition(getPosition()); // probably dodgy - can be fixed
+    scene.interactiveFrame().applyTransformation();
+  }
+    
   void updatePhysics() {
     planetPhysicsMap.get(hashId).update();
   }
 
 boolean runCrushOnce = false;
 ///////////// maybe physics system should only be implemented here? to save framerate?  
-  void destructSequence() {
-    // start fading colour of planet? (how, its a texture? opacity? model.beginUpdateColors()?
- 
-      model.beginUpdateColors();
-        for (int i = 0; i < verts.length/4; i++) model.updateColor(i, 255, 255, 255, opacity);
-      model.endUpdateColors();
-      opacity -= 2;
+  void destructSequence() { 
+//      model.beginUpdateColors();
+//        for (int i = 0; i < verts.length/4; i++) model.updateColor(i, opacity, opacity, opacity, opacity);
+//      model.endUpdateColors();
+//      opacity -= 3;
     
     if(age - die == 0) {
       // briefly expand the planet
@@ -227,11 +232,17 @@ boolean runCrushOnce = false;
     // find what index this planet is and remove it
     int indexOf = GPUPlanetList2.indexOf(this); 
     GPUPlanetList2.remove(indexOf);
-    println(planetPhysicsMap.size());
+  }
+
+  /* needed for selecting planet with 3 fingers */
+  void setAsInteractiveFrame(boolean is) {
+    selectedGPUPlanet = this;
+  }
+  InteractiveFrame getFrame() {
+    return iFrame;  
   }
 
 
-/////////
   AttractionBehavior crushAttractor;
   Vec3D attractorPosition = new Vec3D(0,0,0); // used to update position of attractor.
 
@@ -247,8 +258,8 @@ boolean runCrushOnce = false;
   void removeBehavior() {
     planetPhysics.removeBehavior(crushAttractor);
   }  
-  
   PVector getPosition() {
     return iFrame.position();  
   }
+
 }

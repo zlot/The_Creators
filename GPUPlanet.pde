@@ -117,7 +117,7 @@ class StarSphere {
   private InteractiveFrame iFrame;
   private WETriangleMesh mesh;
   private GLModel model;
-  private int globeDetail = 235;
+  private int globeDetail = 245;
   StarSphere() {
     initMesh(WORLD_RADIUS, globeDetail);
     createPlanet(mesh);
@@ -138,7 +138,7 @@ class StarSphere {
     model.updateVertices(vertices);
     model.beginUpdateVertices();
     // displace the stars to give a nice 3d effect
-    int dsplace = 2500; // was 900.
+    int dsplace = 2800; // was 900.
     for (int i = 0; i < vertices.size(); i++) {
       model.displaceVertex(i, random(-dsplace, dsplace), random(-dsplace, dsplace), random(-dsplace, dsplace));
     }

@@ -11,27 +11,23 @@ void oscEvent(OscMessage theOscMessage) {
     if(theOscMessage.checkTypetag("f")) {
       if (theOscMessage.get(0).floatValue() == 1.0) {
         audioBang = true;
-      } 
-        
+      }  
     }
  } 
   if(theOscMessage.checkAddrPattern("array") == true) {
-       for (int i = 0; i <= 6; i++) {
-         freqs[i] = theOscMessage.get(i).floatValue();
-       }
+     for (int i = 0; i <= 6; i++) {
+       freqs[i] = theOscMessage.get(i).floatValue();
+     }
   } 
  
-  /*
-   if (printO == true) {   
+ /*   if (printO == true) {   
     println("### received an osc message. with address pattern "+theOscMessage.addrPattern() +
     " || " + theOscMessage.addrPattern() +" = " + theOscMessage.get(0).floatValue() );
   }
   */
-  
+
   if(theOscMessage.checkAddrPattern("peak") == true) {
-       for (int i = 0; i <= 6; i++) {
-         peak = theOscMessage.get(0).floatValue()*scaleAudio*(scaleAudio/9);
-       }
+    peak = theOscMessage.get(0).floatValue()*scaleAudio*(scaleAudio/9);
   }  
 }
 

@@ -2,15 +2,12 @@
         S E T T I N G S     P A R T I C L E S
 -----------------------------------------------------------*/
 
- 
-///////////// RETURN THIS BACK!! final int NUM_PARTICLES = 770;
 final int NUM_PARTICLES = 770;
 float PARTICLE_WIDTH = 5;
-float PARTICLE_DRAG = 0.04f;
+float PARTICLE_DRAG = 0.06f;
 int randomStart = 400; // random starting position for particles between - & + all directions of this number.
 
-int introTime = 350;
-int introCounter = introTime;
+int introCounter = INTRO_TIME;
 int introCounterCounter = 0;
 
 VerletPhysics physics;
@@ -31,7 +28,7 @@ int moderator = 0;
 
 public void addParticles(int NUM_PARTICLES) {
   for(int i=0; i < NUM_PARTICLES; i++) {
-    float weight = random(1.8,2.2);
+    float weight = random(2,4);
     VerletParticle p = new VerletParticle(random(-randomStart,randomStart), random(-randomStart,randomStart), random(-randomStart,randomStart), weight);   
     physics.addParticle(p);
     // add a negative attraction force field around the new particle
@@ -47,16 +44,17 @@ public void drawParticles() {
   //noStroke();
   stroke(255);
   PVector blackHoleInPos = blackHoleIn.getPosition();  
-  physics.update(); // update physics engine
+  physics.update();
   
   for (VerletParticle p : physics.particles) {    
     // check if particle is in the center of a black hole or out of world radius range
-    if(dist(blackHoleInPos.x, blackHoleInPos.y, blackHoleInPos.z, p.x, p.y, p.z) <= 10 || abs(p.x) >= WORLD_RADIUS/2 || abs(p.y) >= WORLD_RADIUS/2 || abs(p.z) >= WORLD_RADIUS/2) { 
+    if(dist(blackHoleInPos.x, blackHoleInPos.y, blackHoleInPos.z, p.x, p.y, p.z) <= 75 || abs(p.x) >= WORLD_RADIUS/3.6 || abs(p.y) >= WORLD_RADIUS/3.6 || abs(p.z) >= WORLD_RADIUS/3.6) { 
        p.set(blackHoleOut.getPositionAsVec3D());
        p.clearVelocity();
     }
     pushMatrix();
     translate(p.x, p.y, p.z);
+    noStroke();
     box(p.getWeight()*2);
     //point(p.x,p.y,p.z);
     popMatrix();
@@ -74,12 +72,12 @@ void removeParticle() {
 void checkIntro() {
   if (tuioCursorList.length != 0) {
     intro = false;
-    introCounter = introTime;
+    introCounter = INTRO_TIME;
     introCounterCounter = 0;
   }
   introCounter--;
   if (introCounter <= 0) {
-    introCounterCounter ++;
+    introCounterCounter++;
     introCounter = 0;
     intro = true;
   }

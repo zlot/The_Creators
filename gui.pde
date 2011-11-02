@@ -4,6 +4,7 @@ PGraphics3D g3;
 
 PImage gestureImage;
 PImage startImage;
+
 /*-----
 Area to draw on the screen, on top of the 3d space that Proscene basically handles
 http://forum.processing.org/topic/proscene-and-2d-drawing
@@ -22,7 +23,7 @@ void gui() {
   //drawGestures();     // see TUIO tab
   //drawTuioZoneCursors();
   
-  //if(frameCount < 450) drawIntroImages(); // draw beginning.  
+  if(PLAY_BEGINNING && frameCount < 450) drawIntroImages(); // play beginning.  
   
   if(intro)trail();  // DO NOT DELETE THIS !!!! FOR DRAWING BACKGROUND INTRO
 

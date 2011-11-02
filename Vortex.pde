@@ -23,7 +23,7 @@ class Vortex {
   float ageing = 1;// int(random(1, 4)); //lower is a faster age!
   int maxLife = 400;
   int speedChecker = 10;
-  float diam = 180;
+  float diam = 480; // was 180.
   float grootteInc = .5;  // grootte == size
   
   int angle = 30;
@@ -43,8 +43,8 @@ class Vortex {
   }
   /***** set position *****/
   public void setPositionV() {
-    float low = -800;
-    float high = 800;
+    float low = -1100;
+    float high = 1100;
     iFrame_v.setPosition(new PVector(random(low, high), random(low, high), random(low, high)));
     vel = new PVector(random(-1,1),random(-1,1), random(-1,1));
   }  
@@ -92,7 +92,8 @@ class Vortex {
     if(showVortexes) {
       strokeWeight(0.5);
       if(audioBang)
-        stroke(255, map(abs(noiseVal),0,1,0,25));
+        noStroke(); // the drawing of vortex's is INCOMPLETE.
+        //stroke(255, map(abs(noiseVal),0,1,0,25));
       else
         noStroke();
       sphere(diam);

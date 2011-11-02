@@ -13,27 +13,32 @@ boolean easterEgg = false;
 int easterCounter = 0;
 float tempAttractorRadius;
 
+int tttimeout = 0; // triple tap timeout var
 void tuioUpdate() {
-  /*----------------- D O U B L E T A P -- 
-  PVector locationDoubletap = location
-  boolean doubletap = gesture
+  /*----------------- T R I P L E T A P -- 
   ------------------------------------*/
-  newTuioCounter++;
-  if(newTuioCounter >= 100){
-    lastPosition = newPosition = new PVector(0, 0, 0);
-  }  
+
+  /* timeout for triple tap feature */
+  if(tripleTapCounter > 0) {
+    tttimeout++;
+    if(tttimeout > 29) {
+      tripleTapCounter = 0;
+      tttimeout = 0;
+    }
+  }
   
   tuioCursorList=zones.getPoints();
-  
+
+  /* custom listeners */
   if (tuioCursorList.length > tuioCursors) {
     addTuioCursor();
   } 
   else if (tuioCursorList.length < tuioCursors) {
     removeTuioCursor();
   }
+
   tuioCursors = tuioCursorList.length;
 
-///******* WORKING ON THIS *////////////
        if(scrunchToggle) {
         // allow zoom gesture to control size of attractor.
         tempAttractorRadius += map(tzScaleFactor,1f,2f,0f,10f);
@@ -46,42 +51,79 @@ void tuioUpdate() {
       for (int i=0;i<tuioCursorList.length;i++) {
         tcurX = translateTuioX(tuioCursorList[i][0]);
         tcurY = translateTuioY(tuioCursorList[i][1]);
-      }      
+      }
+      scrunch5Counter = 0;
       break;
     }
    
     case 3: {
-       for(WireframePlanet p : planetList) {    
-        // only check if tcur is over a planet if a planet has not already been selected.
-        if(!selectedAPlanetFlag) {
-          // check if tcur is grabbing a planet
-          p.getFrame().checkIfGrabsMouse(tuioCursorList[0][0], tuioCursorList[0][1], scene.camera());
-          if(p.getFrame().grabsMouse()) {
-            // set the selected planet as the scene's interactive frame.
-            p.setAsInteractiveFrame(true);
-            scene.setDrawInteractiveFrame(true);
-            selectedAPlanetFlag = true;
-          }  
-        } else {
-          // once finished selecting a planet, reset flag to false.
-          if(selectedPlanet == null) {
-            selectedAPlanetFlag = false;
-          } 
-        }
-      }     
+      
+       for(GPUPlanet2 p : GPUPlanetList2) {    
+          // only check if tcur is over a planet if a planet has not already been selected.
+          if(!selectedAPlanetFlag) {
+            // check if tcur is grabbing a planet
+            p.getFrame().checkIfGrabsMouse(tuioCursorList[0][0], tuioCursorList[0][1], scene.camera());
+            if(p.getFrame().grabsMouse()) {
+              // set the selected planet as the scene's interactive frame.
+              p.setAsInteractiveFrame(true);
+              scene.setDrawInteractiveFrame(true);
+              selectedAPlanetFlag = true;
+              withholdWireframeSelection = true;
+            }  
+            // once finished selecting a planet, reset flag to false.
+            if(selectedGPUPlanet == null) {
+              selectedAPlanetFlag = false;
+              withholdWireframeSelection = false;
+            } 
+          }
+       }
+      
+      if(!withholdWireframeSelection) {
+         for(WireframePlanet p : planetList) {    
+          // only check if tcur is over a planet if a planet has not already been selected.
+          if(!selectedAPlanetFlag) {
+            // check if tcur is grabbing a planet
+            p.getFrame().checkIfGrabsMouse(tuioCursorList[0][0], tuioCursorList[0][1], scene.camera());
+            if(p.getFrame().grabsMouse()) {
+              // set the selected planet as the scene's interactive frame.
+              p.setAsInteractiveFrame(true);
+              scene.setDrawInteractiveFrame(true);
+              selectedAPlanetFlag = true;
+            }  
+          } else {
+            // once finished selecting a planet, reset flag to false.
+            if(selectedPlanet == null) {
+              selectedAPlanetFlag = false;
+            } 
+          }
+        } 
+      } 
+      
+
     }
+      scrunch5Counter = 0;
       break;
     case 4:
+      scrunch5Counter = 0;
       break;
     /* ----------------------------------------------------
      SCRUNCH GESTURE
     /* ----------------------------------------------------*/
     case 5: {
+      scrunch5Counter++;
+      if(scrunch5Counter == 25) {
+        scrunchToggle = !scrunchToggle;
+        //attractorActive = true;
+        a.toggleDrawInteractiveFrame(tuioCursorList[0][0], tuioCursorList[0][1]); // see Attractor class.
+//        runAttractor();
+        scrunch5Counter = 0;
+      } 
+      
       totaal = 0;
       int scrunchNumber = 5;
       float[] distances = new float[scrunchNumber];
       for (int i = 0; i < scrunchNumber; i++) {
-        if (i < scrunchNumber-1) {
+        if (i < scrunchNumber-2) {
           distances[i] = dist(tuioCursorList[i][0], tuioCursorList[i][1], tuioCursorList[i+1][0], tuioCursorList[i+1][1]);
         }
         if (i == scrunchNumber-1) {
@@ -91,21 +133,28 @@ void tuioUpdate() {
       }
       average = totaal/scrunchNumber;
       float targetX = average;
-      scrunch5 += (targetX - scrunch5)*easing;
-  
-      if (scrunch5b == true) {
+      scrunch5 = (targetX - scrunch5)*easing;
+      // initialise entry-point for 5 fingers to act as relative position for distance calculations
+      if (scrunch5EntryPoint == true) {
         scrunch5_init = scrunch5;
-        scrunch5b = false;
+        scrunch5EntryPoint = false;
       }
       scrunch5_dis = max(scrunch5_init, scrunch5) - min(scrunch5_init, scrunch5);
-      
-      if(scrunch5_dis >= 2 && scrunchToggle == false && runScrunchOnce == true) {
+      if(scrunch5_dis >= 5.8 && scrunchToggle == false && runScrunchOnce == true) { // distance: between 8-9, tested on multitouch table
         scrunchToggle = true;
         runScrunchOnce = false;
-        a.toggleDrawInteractiveFrame(); // see Attractor class.
-      } else if(scrunch5_dis >= 2 && scrunchToggle == true && runScrunchOnce == true) {
+        float avgX = 0;
+        float avgY = 0;
+        for(int i=0;i<tuioCursorList.length; i++) {
+            avgX+=tuioCursorList[i][0];
+            avgY+=tuioCursorList[i][1];
+        }
+        avgX /= 5;
+        avgY /= 5;
+        a.toggleDrawInteractiveFrame((int) avgX,(int) avgY); // see Attractor class.
+      } else if(scrunch5_dis >= 6 && scrunchToggle == true && runScrunchOnce == true) {
         scrunchToggle = false;
-        a.toggleDrawInteractiveFrame();
+        a.toggleDrawInteractiveFrame(0, 0);
         runScrunchOnce = false;
       }
 
@@ -137,75 +186,77 @@ void tuioUpdate() {
     
   }
   
- // if attractor mode is enabled, move the attractor! See attractor class
- if(attractorMode) a.moveAttractor(tcurX, tcurY);
+  // if attractor mode is enabled, move the attractor! See attractor class
+  if(attractorMode) a.moveAttractor(tcurX, tcurY);
 
- gesturesChecker(); 
+  gesturesChecker(); 
 }
 
+int scrunch5Counter = 0;
+boolean withholdWireframeSelection = false;
 
 
+PVector lastPosition = new PVector(0, 0);
+PVector newPosition = new PVector(0, 0);
 
-
-
-
+int tripleTapCounter = 0;
 void addTuioCursor() {
   if (tuioCursorList.length == 5) {
-    scrunch5b = true;
+    scrunch5EntryPoint = true;
   }
 
-  //-------------------------------------------[START NECESSARY FOR DOUBLETAP]
-  tuioCursorList=zones.getPoints(); //i know i allready loaded it somewhere else, but it's necessary to update it here
-   
-  if (newTuioCounter <= 5){
-    lastPosition = new PVector(tuioCursorList[tuioCursorList.length-1][0], tuioCursorList[tuioCursorList.length-1][1]);
-  } else {
-    newPosition = new PVector(tuioCursorList[tuioCursorList.length-1][0], tuioCursorList[tuioCursorList.length-1][1]);
-  }
-
-  if (dist(lastPosition.x, lastPosition.y, newPosition.x, newPosition.y) <= 40 && lastPosition.x != 0) {
-    doubleTap();
-    locationDoubleTap = new PVector(lastPosition.x, lastPosition.y);
-    lastPosition = new PVector(0, 0);
-    newPosition = new PVector(0, 0);
-  }
-
- newTuioCounter = 0;
+  //-------------------------------------------[START NECESSARY FOR TRIPLETAP]
      
- //-------------------------------------------[END NECESSARY FOR DOUBLETAP]
+  newPosition = new PVector(tuioCursorList[tuioCursorList.length-1][0], tuioCursorList[tuioCursorList.length-1][1]);
 
+  if (dist(lastPosition.x, lastPosition.y, newPosition.x, newPosition.y) <= 16 && lastPosition.x != 0) {
+    tripleTapCounter++; 
+    if(tripleTapCounter == 2) { // 2 because of the way this method is setup. Just trust me.
+      tripleTap();
+      tripleTapCounter = 0;
+      lastPosition = new PVector(0, 0);
+      newPosition = new PVector(0, 0);
+    }
+
+  }
+  
+  lastPosition = new PVector(tuioCursorList[tuioCursorList.length-1][0], tuioCursorList[tuioCursorList.length-1][1]);
+  
+
+     
+ //-------------------------------------------[END NECESSARY FOR TRIPLETAP]
 }
 
-/* run when doubleTap gesture is made */
-void doubleTap() {
+
+/* run when tripleTap gesture is made */
+void tripleTap() {
   tuioHandler.getTuioDevice().setCameraMode(HIDevice.CameraMode.GOOGLE_EARTH);
-  //scene.camera().setPosition(new PVector(11080,0,0));
-  
-  //scene.camera().interpolateTo(planetList.get(0).getFrame());
-  scene.camera().interpolateTo(defaultSceneView.getFrame());
+  scene.camera().interpolateTo(defaultSceneView.getFrame(), 3);
   //scene.camera().lookAt( scene.camera().sceneCenter() );
   selectedAPlanetFlag = false;
   scene.setDrawInteractiveFrame(false);  
 }
 
 
-void removeTuioCursor() {
+void removeTuioCursor() {  
+  
   if (tuioCursorList.length == 5) {
-    scrunch5b = true;
+    scrunch5EntryPoint = true;
   }
   tcurYforZ = 0;
   runScrunchOnce = true; // flag scrunch gesture that it can be activated again (see switch 5 in tuioUpdate() )
+  // interpolate camera to zoom in on selected planet
   if(selectedAPlanetFlag && selectedPlanet != null) {
     scene.camera().fitSphere(selectedPlanet.getPosition(), 700);
     selectedPlanet.setLookingAt(true);
   }
-  
+  // interpolate camera to zoom in on selectedGPUplanet
+  if(selectedAPlanetFlag && selectedGPUPlanet != null) {
+    scene.camera().fitSphere(selectedGPUPlanet.getPosition(), 1000);
+    //selectedGPUPlanet.setLookingAt(true);
+  }
 }
 
-int newTuioCounter;
-PVector lastPosition = new PVector(0, 0);
-PVector newPosition = new PVector(0, 0);
-PVector locationDoubleTap;
 
 
 
@@ -222,7 +273,7 @@ int translateTuioY(float y) {
 
 /**
  * Singleton class that holds a scene frame in a particular position which becomes the default
- * camera view when double-tap gesture is used. Must use this instead of showEntireScene() because
+ * camera view when triple-tap gesture is used. Must use this instead of showEntireScene() because
  * that will zoom out even of the worldSphere boundary.
  */
 class DefaultSceneView {

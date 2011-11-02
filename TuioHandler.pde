@@ -83,8 +83,12 @@ public PVector convertScreenToWorld(PVector eventPoint) { // taken from Interact
 
 float zoom = 0;
 public void tuioFeed(HIDevice tuioDevice) {
-  zoom = map(tzScaleFactor, 0, 2, -1000, 400);
-  if(zoom == -300) zoom = 0; // cheap & easy way to get -1000 (faster zooming out) + having initial 0zoom at beginning)
+  //zoom = map(tzScaleFactor, 0, 2, -1000, 400);
+  zoom = map(tzScaleFactor, 0, 2, -2500, 400);
+  if(zoom == -1050) zoom = 0; // cheap & easy way to get -2500 (faster zooming out) + having initial 0zoom at beginning). Apparently -1050 is 'the middle' of both.
+  println(scene.camera().distanceToSceneCenter());
+  if(scene.camera().distanceToSceneCenter() > 10100) zoom = 0; // never let user zoom out past worldsphere.
+  
   
    // if focusing on selected planet, change style of feed to rotate planet.
    if(scene.interactiveFrameIsDrawn()) {
@@ -95,3 +99,4 @@ public void tuioFeed(HIDevice tuioDevice) {
      tuioDevice.feedRotation(0,0,0);
    }
 }
+
