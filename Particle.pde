@@ -2,7 +2,7 @@
         S E T T I N G S     P A R T I C L E S
 -----------------------------------------------------------*/
 
-final int NUM_PARTICLES = 700; //was 770 but maybe a tad too slow.
+final int NUM_PARTICLES = 720; //was 770 but maybe a tad too slow.
 float PARTICLE_WIDTH = 5;
 float PARTICLE_DRAG = 0.06f;
 int randomStart = 400; // random starting position for particles between - & + all directions of this number.
@@ -24,7 +24,7 @@ boolean intro = false;
 /*****
   PARTICLE GLOBAL FUNCTIONS
 *****/
-int moderator = 0;
+//int moderator = 0;
 
 public void addParticles(int NUM_PARTICLES) {
   for(int i=0; i < NUM_PARTICLES; i++) {
@@ -32,16 +32,15 @@ public void addParticles(int NUM_PARTICLES) {
     VerletParticle p = new VerletParticle(random(-randomStart,randomStart), random(-randomStart,randomStart), random(-randomStart,randomStart), weight);   
     physics.addParticle(p);
     // add a negative attraction force field around the new particle
-    //if(moderator % 14 == 0)
+    //if(moderator % 10 == 0)
       physics.addBehavior(new AttractionBehavior(p, PARTICLE_WIDTH*4, -3.2f, .2f));
-    moderator++;
+    //moderator++;
   }
 }
 
 public void drawParticles() {
   pushStyle();
   fill(255);
-  //noStroke();
   stroke(255);
   PVector blackHoleInPos = blackHoleIn.getPosition();  
   physics.update();
@@ -53,8 +52,10 @@ public void drawParticles() {
        p.clearVelocity();
     }
     pushMatrix();
-    translate(p.x, p.y, p.z);
+    translate(p.x+(round(random(2))), p.y, p.z);
     noStroke();
+    //noFill();
+    //stroke(255);
     box(p.getWeight()*2);
     //point(p.x,p.y,p.z);
     popMatrix();

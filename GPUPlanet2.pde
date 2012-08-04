@@ -15,7 +15,7 @@ class GPUPlanet2 {
   float[] verts; // flattened array of vertices from toxiclibs mesh
   int hashId; 
   VerletPhysics planetPhysics;
-  int altPlanetType; // EITHER 0 OR 1.
+  int altPlanetType; // EITHER 0 OR 1. If 0, planet gets springs, explodes well, doesn't get super-big, stays round shape.
   
   GPUPlanet2(WETriangleMesh _mesh, PVector position, PVector _vel) {
     initInteractiveFrame(position);
@@ -23,7 +23,7 @@ class GPUPlanet2 {
     createPlanet(mesh);
     vel = _vel;
     GPUPlanetList2.add(this); // add to planet list.
-    altPlanetType = round(random(0,1));
+    altPlanetType = round(random(0,1)-0.2); // weighted towards 0.
   }
   
   void initInteractiveFrame(PVector position) {
@@ -72,7 +72,6 @@ class GPUPlanet2 {
     // TODO: try setting other parameters on the model here!
     //model.setShininess(3);
     
-
     initPhysics(mesh);
   }
   
@@ -100,7 +99,7 @@ ArrayList<VerletParticle> particleList;
     // turn mesh edges into springs
     int inc = 0;
     for (WingedEdge e : mesh.edges.values()) {
-      if(inc % 16 == 0 ) {
+      if(inc % 12 == 0 ) { // only every 12th edge into a spring, otherwise suuuuuper slow if every edge becomes a spring.
         VerletParticle a = planetPhysics.particles.get(((WEVertex) e.a).id);
         VerletParticle b = planetPhysics.particles.get(((WEVertex) e.b).id);
         planetPhysics.addSpring(new VerletSpring(a, b, a.distanceTo(b), 1f));
@@ -118,6 +117,10 @@ ArrayList<VerletParticle> particleList;
     return new GLTexture(ProcessingCanvas, filename);
   }  
   
+  
+  
+  int caStepper = 0;
+  
   void jitter(int planetNumber) {
     float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
     /*-----
@@ -125,13 +128,14 @@ ArrayList<VerletParticle> particleList;
      Use SimplexNoise to make a levelled-out randomisation, akin to an actual planet surface
     -----*/  
     // take the places of the vertex's and place into particle positions??
-    for (int i = 0; i < verts.length/4; i++) {
+    //for (int i = 0; i < verts.length/4; i++) {}
 
-    }
-
-    float jiggleFactor = 4.1;//float jiggleFactor = 0.7 / constrain(peak,1,4); // the idea is to constrain the jiggle the more general background noise in the room there is. See OSC tab for peak.
+ //   float jiggleFactor = 4.1;//float jiggleFactor = 0.7 / constrain(peak,1,4); // the idea is to constrain the jiggle the more general background noise in the room there is. See OSC tab for peak.
     // take the particle postions and update the place of the vertex in the model, adding a jitter effect via mappedF.
     
+    int caBehavior = pixelGrid[caStepper];
+    caStepper++;
+    float jiggleFactor = (caBehavior == 1 ? 4.1 : 1);
     
     for(int i = 0; i < vec3DList.size(); i++) {
         Vec3D vertexVec3D = particleList.get(i);
@@ -207,10 +211,8 @@ ArrayList<VerletParticle> particleList;
 boolean runCrushOnce = false;
 ///////////// maybe physics system should only be implemented here? to save framerate?  
   void destructSequence() { 
-//      model.beginUpdateColors();
-//        for (int i = 0; i < verts.length/4; i++) model.updateColor(i, opacity, opacity, opacity, opacity);
-//      model.endUpdateColors();
-//      opacity -= 3;
+
+    if(altPlanetType == 1) altPlanetType = 0; // convert to other planet type so destructs properly
     
     if(age - die == 0) {
       // briefly expand the planet
@@ -220,11 +222,13 @@ boolean runCrushOnce = false;
       // crush the planet
       initPlanetAttractor(0.95,1);  
     }
-    if(age - die >= 180)
+    if(age - die >= 400) // long time to die!
       destroy();
   }
   
   void destroy() {
+    // get position of planet before its destroyed
+    Vec3D positionOfDeath = new Vec3D(int(getPosition().x), int(getPosition().y), int(getPosition().z));
     removeBehavior();
     // remove all particles from planetPhysics
     planetPhysics.clear();
@@ -232,8 +236,16 @@ boolean runCrushOnce = false;
     // find what index this planet is and remove it
     int indexOf = GPUPlanetList2.indexOf(this); 
     GPUPlanetList2.remove(indexOf);
+    
+    
+    // explode particles from the death of the planet. Take a 6th of all available particles
+    for(int i=0; i<int(NUM_PARTICLES/6); i++) {
+      VerletParticle p = physics.particles.get(i);
+      p.set(positionOfDeath);
+      p.clearVelocity(); 
+    }
   }
-
+  
   /* needed for selecting planet with 3 fingers */
   void setAsInteractiveFrame(boolean is) {
     selectedGPUPlanet = this;

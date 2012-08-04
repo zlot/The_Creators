@@ -20,11 +20,6 @@
 // TODO:: constraint on particles to avoid going through planets?
 // TODO:: GLOBEDETAIL in wireframeplanet: was 16, can it deal with 32? Also globeDetail in GPUPlanet2. Connected to calcSphereCoords. Was 32, now 60 ...
 
-// DONE:: Explode the planets correctly.
-// DONE:: Fix mutitouch gestures!!
-// DONE:: allow for 3-finger selection of textured planets as well.
-// DONE:: Learn and make the lighting better.
-
 import toxi.geom.*;
 import toxi.geom.mesh.*;
 import toxi.math.*;
@@ -48,8 +43,8 @@ final int WORLD_RADIUS = 8200; // was 9200
 final float PLANET_SPEED = random(0.4,0.7); // speed that all planets slowly move 
 ///////final int NEW_WIREFRAME_RADIUS = round(random(60,100)); // size when new planet is created via attractor
 final boolean SHOW_FRAMERATE = false;
-final int NUM_INIT_WIREFRAMES = 4;
-final int NUM_INIT_GPU2PLANETS = 5;
+final int NUM_INIT_WIREFRAMES = 2;
+final int NUM_INIT_GPU2PLANETS = 1;
 final int INTRO_TIME = 1050; // was 350. // timeout before screensaver starts
 float jitter = 105; // // was 50 before being inside exhibition box. //very important! jitter intensity of planets to frequencies.
 
@@ -83,8 +78,11 @@ GLGraphics renderer;
 
 float lightSpecular[] = {0,222,222,1}; // specular adds a 'shiny' spot to your models // FOR LIGHTING.
 
-
 HashMap<Integer, VerletPhysics> planetPhysicsMap; // holds the physics necessary for GPUPlanet2's
+
+/***** CA STUFF *****/
+CA simpleCA; 
+int pixelGrid[] = new int[50*50];
 
 void setup() {
   size(screen.width, screen.height, GLConstants.GLGRAPHICS);
@@ -139,8 +137,6 @@ void setup() {
   calcSphereCoords(60, WORLD_RADIUS);
   
   
-
-  
   
 ///////////////////
 ///////////
@@ -163,6 +159,8 @@ for (int i=0; i<NUM_INIT_GPU2PLANETS; i++) {
 
   scene.camera().interpolateTo(defaultSceneView.getFrame()); // interpolate to default view to begin
 
+
+  generateCA(); // generate ruleset, fills pixelGrid[].
 }
 
 
@@ -273,16 +271,6 @@ void draw() {
 /*--- CLOSE OF DRAW FUNCTION HERE ---*/
 }
 
-/*
-float NS = 0.05f; // noise scale (try from 0.005 to 0.5)
-float noiseVal = 0.5;
-int noiseInc = 0;
-
-void noiseIncrementer() {
-  noiseVal = (float) SimplexNoise.noise(NS*noiseInc, 0); 
-  noiseInc = noiseInc % 100 == 0 ? 1 : ++noiseInc;
-}
-*/
 
 void drawPlanetIfSelected() {
  if(selectedPlanet != null) {

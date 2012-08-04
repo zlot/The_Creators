@@ -1,4 +1,4 @@
- final String WORLD_BACKGROUND = "textures/background4.png";
+ final String WORLD_BACKGROUND = "textures/backgrounds/background4.jpg";
  ArrayList<GLTexture> loadedTextures;
 
 /**
@@ -8,8 +8,7 @@ public void loadTextures() {
   loadedTextures = new ArrayList<GLTexture>();
   gestureImage = loadImage("gestures.png"); // gesture intro image
   startImage = loadImage("thecreators.png"); // intro image
-  
-  String texturePath = sketchPath + "/data/textures/";
+  String texturePath = sketchPath + "/data/textures/planets/";
   File[] fileList = listFiles(texturePath);
   String[] textureNames = new String[fileList.length];
 
@@ -30,8 +29,9 @@ public void loadTextures() {
   //if this is used, comment-out the below for-loop (which pre-loads all textures)
 */
   for(String s : textureNames) {
-    loadedTextures.add(new GLTexture(ProcessingCanvas, s));
+    if(s != null) loadedTextures.add(new GLTexture(ProcessingCanvas, s));
   }
+  
 }
 
 
