@@ -2,7 +2,7 @@
         S E T T I N G S     P A R T I C L E S
 -----------------------------------------------------------*/
 
-final int NUM_PARTICLES = 770;
+final int NUM_PARTICLES = 700; //was 770 but maybe a tad too slow.
 float PARTICLE_WIDTH = 5;
 float PARTICLE_DRAG = 0.06f;
 int randomStart = 400; // random starting position for particles between - & + all directions of this number.

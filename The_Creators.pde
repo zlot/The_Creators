@@ -43,7 +43,7 @@ import netP5.*;
 
 
 /***** INITIAL PARAMETERS *****/
-final boolean PLAY_BEGINNING = true;
+final boolean PLAY_BEGINNING = false;
 final int WORLD_RADIUS = 8200; // was 9200
 final float PLANET_SPEED = random(0.4,0.7); // speed that all planets slowly move 
 ///////final int NEW_WIREFRAME_RADIUS = round(random(60,100)); // size when new planet is created via attractor
@@ -51,6 +51,7 @@ final boolean SHOW_FRAMERATE = false;
 final int NUM_INIT_WIREFRAMES = 4;
 final int NUM_INIT_GPU2PLANETS = 5;
 final int INTRO_TIME = 1050; // was 350. // timeout before screensaver starts
+float jitter = 105; // // was 50 before being inside exhibition box. //very important! jitter intensity of planets to frequencies.
 
 
 OscP5 oscP5;
@@ -77,7 +78,6 @@ WorldSphere worldSphere;
 StarSphere starSphere;
 DefaultSceneView defaultSceneView; // class holding a single scene as default camera view. See TuioZones tab.
 
-float jitter = 50; // very important! jitter intensity of planets to frequencies.
 
 GLGraphics renderer;
 
@@ -215,7 +215,7 @@ void draw() {
   }
   
   // every once in a while, create a new random planet
-  if(frameCount % 5000 == 0) {
+  if(frameCount % 4500 == 0) {
     PVector randPos = new PVector(random(-1300,1300),random(-1300,1000),random(-1300,1300));
     WireframePlanet p = new WireframePlanet(randPos,newWireframeRadius());  
   }
@@ -385,7 +385,8 @@ void glLightingGo(GLGraphics renderer) {
   
 //  renderer.gl.glMaterialf(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, 20f); 
 
- // if(frameCount >= 200) renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[]{0.1,0.1,0.1,1}, 0); // controls making other side not so pitch-dark.
+///////// note::: at web directions this was commented out!
+  if(frameCount >= 200) renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[]{0.1,0.1,0.1,1}, 0); // controls making other side not so pitch-dark.
   
   renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, lightDiffuse, 0);  
   renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, lightSpecular, 0);   

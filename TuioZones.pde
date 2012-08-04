@@ -111,12 +111,13 @@ void tuioUpdate() {
     /* ----------------------------------------------------*/
     case 5: {
       scrunch5Counter++;
-      if(scrunch5Counter == 25) {
+      if(scrunch5Counter == 30 && runScrunchOnce) {
         scrunchToggle = !scrunchToggle;
         //attractorActive = true;
         a.toggleDrawInteractiveFrame(tuioCursorList[0][0], tuioCursorList[0][1]); // see Attractor class.
 //        runAttractor();
         scrunch5Counter = 0;
+        runScrunchOnce = false;
       } 
       
       totaal = 0;

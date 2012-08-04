@@ -35,8 +35,16 @@ float tzScaleFactor, tzRotateFactor;
 float lineX = 0;
 float rotate_ = 0;
 
+boolean checkBoundary = true;
 void gesturesChecker() {
-  tzScaleFactor = zones.getGestureScale("canvas");
+  tzScaleFactor = zones.getGestureScale("canvas"); // controls pinch/zoom gesture.
+  // if reached furthest can zoom out, this if statement controls being able to zoom back in. see TuioHandler tab, tuioFeed() method for more.
+  if(tzScaleFactor > 1.5 && reachedBoundaryOfWorld) {
+    reachedBoundaryOfWorld = false;  
+    checkBoundary = false;
+  } else {
+    checkBoundary = true;  
+  }
   text(tzScaleFactor, 10, 30);
   tzRotateFactor = zones.getGestureRotation("canvas");
   text(tzRotateFactor, 10, 50);  

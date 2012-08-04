@@ -82,12 +82,18 @@ public PVector convertScreenToWorld(PVector eventPoint) { // taken from Interact
 }
 
 float zoom = 0;
+boolean reachedBoundaryOfWorld = false;
 public void tuioFeed(HIDevice tuioDevice) {
   //zoom = map(tzScaleFactor, 0, 2, -1000, 400);
   zoom = map(tzScaleFactor, 0, 2, -2500, 400);
   if(zoom == -1050) zoom = 0; // cheap & easy way to get -2500 (faster zooming out) + having initial 0zoom at beginning). Apparently -1050 is 'the middle' of both.
-  println(scene.camera().distanceToSceneCenter());
-  if(scene.camera().distanceToSceneCenter() > 10100) zoom = 0; // never let user zoom out past worldsphere.
+  // never let user zoom out past worldsphere.  
+  if(scene.camera().distanceToSceneCenter() > 10099 && checkBoundary) {
+    zoom = 0;
+    // dont check again until zoom out gesture is invoked.
+    // See TUIO tab > gesturesChecker() for more info.
+    reachedBoundaryOfWorld = true;
+  } 
   
   
    // if focusing on selected planet, change style of feed to rotate planet.
