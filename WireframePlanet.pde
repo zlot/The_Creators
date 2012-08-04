@@ -212,13 +212,19 @@ class WireframePlanet {
   }
   
   void jitterMesh(int planetNumber) {
+    int count = 0;
     for (Vec3D v : verticesList) {
       float r = random(1);
-      ////// SHOULD ALL VERTICES MOVE OR JUST SOME? PLAY WITH THIS!
-      if (r < 0.4) {
+      if(pixelGrid[count] == 1) {// aka, if the ruleset dictates that this vertex can move, then:
         float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
-        v.jitter(mappedF * (2.8*r)); // play with multiplier for more/less jitter
+        v.jitter(mappedF * (0.38*r)); // play with multiplier for more/less jitter
+      } else {
+        if (r < 0.4) {
+          float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
+          v.jitter(mappedF * (0.28*r)); // play with multiplier for more/less jitter
+        }
       }
+      count++;
     }
   }
    

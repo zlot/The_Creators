@@ -98,12 +98,12 @@ void generateCA() {
   ////////////////////////////////////
   //      SETUP
   ////////////////////////////////////    
-  final int AMOUNT_OF_PIXELS = 50*50; // TODO:: how big should this ruleset get?
-  int possibleRules[] = {30,90,182,73,77,41,47,45,165,78,85};
+  final int AMOUNT_OF_PIXELS = 38*38; // to match the 1440 vertices on a planet.
+  int possibleRules[] = {30,90,182,73,77,41,45,165,78,85};
   int rule = possibleRules[round(random(possibleRules.length-1))];
-  rule = 30;
-  int widthCA = 50;
-  int heightCA = 50;
+  rule = 30; // rule 2 shows this off, because its only a glider.
+  int widthCA = int(sqrt(AMOUNT_OF_PIXELS));
+  int heightCA = int(sqrt(AMOUNT_OF_PIXELS));
 
   int spacer = 1;
  
@@ -128,9 +128,9 @@ void generateCA() {
             for(int i=0; i<AMOUNT_OF_PIXELS; i++) {
               pixelGrid[i] = 0;
             }
-            int amountOfStarters = 5;
+            int amountOfStarters = 1;
             for(int i=0; i < amountOfStarters; i++) {
-              pixelGrid[widthCA/amountOfStarters*i] = 1;
+              pixelGrid[widthCA/amountOfStarters*i] = round(random(1,5));
             }
           } else { // begin generations
             if(x == 0) {

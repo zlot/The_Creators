@@ -119,7 +119,6 @@ ArrayList<VerletParticle> particleList;
   
   
   
-  int caStepper = 0;
   
   void jitter(int planetNumber) {
     float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
@@ -130,12 +129,9 @@ ArrayList<VerletParticle> particleList;
     // take the places of the vertex's and place into particle positions??
     //for (int i = 0; i < verts.length/4; i++) {}
 
- //   float jiggleFactor = 4.1;//float jiggleFactor = 0.7 / constrain(peak,1,4); // the idea is to constrain the jiggle the more general background noise in the room there is. See OSC tab for peak.
+    float jiggleFactor = 4.1;//float jiggleFactor = 0.7 / constrain(peak,1,4); // the idea is to constrain the jiggle the more general background noise in the room there is. See OSC tab for peak.
     // take the particle postions and update the place of the vertex in the model, adding a jitter effect via mappedF.
     
-    int caBehavior = pixelGrid[caStepper];
-    caStepper++;
-    float jiggleFactor = (caBehavior == 1 ? 4.1 : 1);
     
     for(int i = 0; i < vec3DList.size(); i++) {
         Vec3D vertexVec3D = particleList.get(i);
@@ -146,11 +142,22 @@ ArrayList<VerletParticle> particleList;
           vertexVec3D.y = verts[4*i+1];
           vertexVec3D.z = verts[4*i+2];
         }
-
+        
+        float r = random(1);
         // update the vertexes to placement of particles
-        verts[4*i] = vertexVec3D.x + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01; // + mappedF*0.01 moves the planet in a funny arc
-        verts[4*i+1] = vertexVec3D.y + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
-        verts[4*i+2] = vertexVec3D.z + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
+        if(pixelGrid[i] == 1) {// aka, if the ruleset dictates that this vertex can move, then:
+          jiggleFactor = 3;
+          verts[4*i] = vertexVec3D.x + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01; // + mappedF*0.01 moves the planet in a funny arc
+          verts[4*i+1] = vertexVec3D.y + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
+          verts[4*i+2] = vertexVec3D.z + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
+        } else {
+          if(r < 0.4) {
+            jiggleFactor = 2;
+            verts[4*i] = vertexVec3D.x + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01; // + mappedF*0.01 moves the planet in a funny arc
+            verts[4*i+1] = vertexVec3D.y + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
+            verts[4*i+2] = vertexVec3D.z + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
+          }
+        }
     }
     model.beginUpdateVertices();
       for (int i = 0; i < verts.length/4; i++) {
@@ -217,6 +224,8 @@ boolean runCrushOnce = false;
     if(age - die == 0) {
       // briefly expand the planet
       initPlanetAttractor(-0.7,2.3);
+      
+      
     } else if (age - die == 24) {
       removeBehavior();
       // crush the planet

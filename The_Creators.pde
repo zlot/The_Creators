@@ -45,7 +45,7 @@ final float PLANET_SPEED = random(0.4,0.7); // speed that all planets slowly mov
 final boolean SHOW_FRAMERATE = false;
 final int NUM_INIT_WIREFRAMES = 2;
 final int NUM_INIT_GPU2PLANETS = 1;
-final int INTRO_TIME = 1050; // was 350. // timeout before screensaver starts
+final int INTRO_TIME = 1450; // was 350. // timeout before screensaver starts
 float jitter = 105; // // was 50 before being inside exhibition box. //very important! jitter intensity of planets to frequencies.
 
 
