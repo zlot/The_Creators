@@ -10,7 +10,7 @@ class WireframePlanet {
   float scaleInc; // increment the planet scales up from.
   int radius;
   PVector vel; // velocity of planet.
-  private float sizeTooBig = random(1.2,1.7); // size of a planet when it decides to become a textured planet
+  private float sizeTooBig; // size of a planet when it decides to become a textured planet
   int fadeIn = 210; // 0-255 color scale. controls fade-in effect when planet is created. begins at 0 when created and ++'s to 210.
   private float rOffset = random(0.0005, 0.003);
 
@@ -218,10 +218,12 @@ class WireframePlanet {
       if(pixelGrid[count] == 1) {// aka, if the ruleset dictates that this vertex can move, then:
         float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
         v.jitter(mappedF * (0.38*r)); // play with multiplier for more/less jitter
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
       } else {
         if (r < 0.4) {
           float mappedF = map(planetNumber > freqs.length-1 ? freqs[round(random(0,freqs.length-1))] : freqs[planetNumber], 0, 1, 0, jitter);
           v.jitter(mappedF * (0.28*r)); // play with multiplier for more/less jitter
+          /////////////////////////////////////////////////////////////////////////////////////////////////////////////
         }
       }
       count++;

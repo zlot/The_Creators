@@ -141,7 +141,7 @@ void tuioUpdate() {
         scrunch5EntryPoint = false;
       }
       scrunch5_dis = max(scrunch5_init, scrunch5) - min(scrunch5_init, scrunch5);
-      if(scrunch5_dis >= 5.8 && scrunchToggle == false && runScrunchOnce == true) { // distance: between 8-9, tested on multitouch table
+      if(scrunch5_dis >= 6.5 && scrunchToggle == false && runScrunchOnce == true) { // distance: between 8-9, tested on multitouch table // note:: was 5.8 before biome exhibition edit ...
         scrunchToggle = true;
         runScrunchOnce = false;
         float avgX = 0;
@@ -153,7 +153,7 @@ void tuioUpdate() {
         avgX /= 5;
         avgY /= 5;
         a.toggleDrawInteractiveFrame((int) avgX,(int) avgY); // see Attractor class.
-      } else if(scrunch5_dis >= 6 && scrunchToggle == true && runScrunchOnce == true) {
+      } else if(scrunch5_dis >= 6.5 && scrunchToggle == true && runScrunchOnce == true) {
         scrunchToggle = false;
         a.toggleDrawInteractiveFrame(0, 0);
         runScrunchOnce = false;
@@ -177,7 +177,6 @@ void tuioUpdate() {
       }
       break;
     }
-
       
     default: {  
       totaal = 0;
@@ -195,7 +194,6 @@ void tuioUpdate() {
 
 int scrunch5Counter = 0;
 boolean withholdWireframeSelection = false;
-
 
 PVector lastPosition = new PVector(0, 0);
 PVector newPosition = new PVector(0, 0);
@@ -223,8 +221,7 @@ void addTuioCursor() {
   
   lastPosition = new PVector(tuioCursorList[tuioCursorList.length-1][0], tuioCursorList[tuioCursorList.length-1][1]);
   
-
-     
+    
  //-------------------------------------------[END NECESSARY FOR TRIPLETAP]
 }
 
@@ -257,7 +254,6 @@ void removeTuioCursor() {
     //selectedGPUPlanet.setLookingAt(true);
   }
 }
-
 
 
 

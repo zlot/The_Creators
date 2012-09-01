@@ -5,11 +5,12 @@ class GPUPlanet2 {
   private InteractiveFrame iFrame;
   private WETriangleMesh mesh;
   private GLModel model;
+  //////////////note::: globeDetail not used??
   private int globeDetail = 32; // dynamically create this? 32 or 60? has a BIG important impact. Final detail of texturedglobe!
   private int initWidth = 10; 
   private int age = 0; // age
 /////////////  
-  private int die = round(random(900,1500)); // was 1500.
+  private int die;
   private PVector vel; // controls planet movement
   private float rOffset = random(0.0001, 0.015); // rotation offset
   float[] verts; // flattened array of vertices from toxiclibs mesh
@@ -23,7 +24,13 @@ class GPUPlanet2 {
     createPlanet(mesh);
     vel = _vel;
     GPUPlanetList2.add(this); // add to planet list.
-    altPlanetType = round(random(0,1)-0.2); // weighted towards 0.
+    altPlanetType = round(random(0,1)-0.13); // weighted towards 0.
+    //if altPlanetType is 0, then it lives longer.
+    if(altPlanetType == 0) {
+      die = round(random(1300,1900));
+    } else { // altPlanetType is 1
+      die = round(random(900,1400));
+    }
   }
   
   void initInteractiveFrame(PVector position) {
@@ -132,7 +139,6 @@ ArrayList<VerletParticle> particleList;
     float jiggleFactor = 4.1;//float jiggleFactor = 0.7 / constrain(peak,1,4); // the idea is to constrain the jiggle the more general background noise in the room there is. See OSC tab for peak.
     // take the particle postions and update the place of the vertex in the model, adding a jitter effect via mappedF.
     
-    
     for(int i = 0; i < vec3DList.size(); i++) {
         Vec3D vertexVec3D = particleList.get(i);
 
@@ -146,13 +152,13 @@ ArrayList<VerletParticle> particleList;
         float r = random(1);
         // update the vertexes to placement of particles
         if(pixelGrid[i] == 1) {// aka, if the ruleset dictates that this vertex can move, then:
-          jiggleFactor = 3;
+          jiggleFactor = 3; /////////////////////////////////////////////////////////////////////////////////////////////////////////////
           verts[4*i] = vertexVec3D.x + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01; // + mappedF*0.01 moves the planet in a funny arc
           verts[4*i+1] = vertexVec3D.y + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
           verts[4*i+2] = vertexVec3D.z + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
         } else {
           if(r < 0.4) {
-            jiggleFactor = 2;
+            jiggleFactor = 2; /////////////////////////////////////////////////////////////////////////////////////////////////////////////
             verts[4*i] = vertexVec3D.x + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01; // + mappedF*0.01 moves the planet in a funny arc
             verts[4*i+1] = vertexVec3D.y + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
             verts[4*i+2] = vertexVec3D.z + mappedF*random(-jiggleFactor,jiggleFactor) + mappedF*0.01;
@@ -220,19 +226,19 @@ boolean runCrushOnce = false;
   void destructSequence() { 
 
     if(altPlanetType == 1) altPlanetType = 0; // convert to other planet type so destructs properly
-    
+       
     if(age - die == 0) {
       // briefly expand the planet
       initPlanetAttractor(-0.7,2.3);
-      
-      
     } else if (age - die == 24) {
       removeBehavior();
+      
       // crush the planet
       initPlanetAttractor(0.95,1);  
     }
-    if(age - die >= 400) // long time to die!
+    if(age - die >= 400) {// long time to die!
       destroy();
+    }
   }
   
   void destroy() {

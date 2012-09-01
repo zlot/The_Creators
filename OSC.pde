@@ -1,7 +1,10 @@
 boolean audioBang = false;
 boolean printO = false;
 float peak;
-float scaleAudio = 10;
+float scaleAudio = 20;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// up this value for mic more sensitive?
+
 
 float[] freqs = new float[7];
 

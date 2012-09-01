@@ -107,6 +107,10 @@ class Vortex {
     }
   }
   void die() {
+    //occasionally, create a new planet where this vortex was
+    if(random(1) <= .09) {
+      WireframePlanet p = new WireframePlanet(getPositionV(),newWireframeRadius());  
+    }    
     removeBehaviour(); // remove all behaviours      
     vortexesQueue.poll(); // Retrieves and removes the head (first element) of this list. (offer() adds to tail)
   }
