@@ -207,10 +207,8 @@ ArrayList<VerletParticle> particleList;
 boolean runCrushOnce = false;
 ///////////// maybe physics system should only be implemented here? to save framerate?  
   void destructSequence() { 
-//      model.beginUpdateColors();
-//        for (int i = 0; i < verts.length/4; i++) model.updateColor(i, opacity, opacity, opacity, opacity);
-//      model.endUpdateColors();
-//      opacity -= 3;
+
+    if(altPlanetType == 1) altPlanetType = 0; // convert to other planet type so destructs properly    
     
     if(age - die == 0) {
       // briefly expand the planet
@@ -220,11 +218,13 @@ boolean runCrushOnce = false;
       // crush the planet
       initPlanetAttractor(0.95,1);  
     }
-    if(age - die >= 180)
+    if(age - die >= 250)
       destroy();
   }
   
   void destroy() {
+    // get position of planet before its destroyed
+    Vec3D positionOfDeath = new Vec3D(int(getPosition().x), int(getPosition().y), int(getPosition().z));
     removeBehavior();
     // remove all particles from planetPhysics
     planetPhysics.clear();
@@ -232,6 +232,16 @@ boolean runCrushOnce = false;
     // find what index this planet is and remove it
     int indexOf = GPUPlanetList2.indexOf(this); 
     GPUPlanetList2.remove(indexOf);
+    
+    // explode particles from the death of the planet. Take a 6th of all available particles
+    if(abs(positionOfDeath.x) <= INSIDE_UNIV || abs(positionOfDeath.y) <= INSIDE_UNIV || abs(positionOfDeath.z) <= INSIDE_UNIV) {
+      for(int i=0; i<int(NUM_PARTICLES/6); i++) {
+        VerletParticle p = physics.particles.get(i);
+        p.set(positionOfDeath);
+        p.clearVelocity(); 
+      }
+    }
+    
   }
 
   /* needed for selecting planet with 3 fingers */

@@ -20,6 +20,7 @@ Attractor a; // at the moment only one attractor at a time.
 
 boolean intro = false;
 
+final float INSIDE_UNIV = WORLD_RADIUS/3.6; 
 
 /*****
   PARTICLE GLOBAL FUNCTIONS
@@ -48,7 +49,7 @@ public void drawParticles() {
   
   for (VerletParticle p : physics.particles) {    
     // check if particle is in the center of a black hole or out of world radius range
-    if(dist(blackHoleInPos.x, blackHoleInPos.y, blackHoleInPos.z, p.x, p.y, p.z) <= 75 || abs(p.x) >= WORLD_RADIUS/3.6 || abs(p.y) >= WORLD_RADIUS/3.6 || abs(p.z) >= WORLD_RADIUS/3.6) { 
+    if(dist(blackHoleInPos.x, blackHoleInPos.y, blackHoleInPos.z, p.x, p.y, p.z) <= 75 || abs(p.x) >= INSIDE_UNIV || abs(p.y) >= INSIDE_UNIV || abs(p.z) >= INSIDE_UNIV) { 
        p.set(blackHoleOut.getPositionAsVec3D());
        p.clearVelocity();
     }

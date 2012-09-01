@@ -48,8 +48,8 @@ final int WORLD_RADIUS = 8200; // was 9200
 final float PLANET_SPEED = random(0.4,0.7); // speed that all planets slowly move 
 ///////final int NEW_WIREFRAME_RADIUS = round(random(60,100)); // size when new planet is created via attractor
 final boolean SHOW_FRAMERATE = false;
-final int NUM_INIT_WIREFRAMES = 4;
-final int NUM_INIT_GPU2PLANETS = 5;
+final int NUM_INIT_WIREFRAMES = 1;
+final int NUM_INIT_GPU2PLANETS = 6;
 final int INTRO_TIME = 1050; // was 350. // timeout before screensaver starts
 float jitter = 105; // // was 50 before being inside exhibition box. //very important! jitter intensity of planets to frequencies.
 

@@ -30,7 +30,7 @@ public void loadTextures() {
   //if this is used, comment-out the below for-loop (which pre-loads all textures)
 */
   for(String s : textureNames) {
-    loadedTextures.add(new GLTexture(ProcessingCanvas, s));
+    if(s != null) loadedTextures.add(new GLTexture(ProcessingCanvas, s));
   }
 }
 
