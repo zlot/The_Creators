@@ -197,7 +197,7 @@ void draw() {
   }
   
   // every once in a while, create a new random planet
-  if(frameCount % 4500 == 0) {
+  if(frameCount % 4700 == 0) {
     PVector randPos = new PVector(random(-1300,1300),random(-1300,1000),random(-1300,1300));
     WireframePlanet p = new WireframePlanet(randPos,newWireframeRadius());  
   }
