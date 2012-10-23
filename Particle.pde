@@ -2,13 +2,12 @@
         S E T T I N G S     P A R T I C L E S
 -----------------------------------------------------------*/
 
-final int NUM_PARTICLES = 720; //was 770 but maybe a tad too slow.
+final int NUM_PARTICLES = 820; //was 770 but maybe a tad too slow.
 float PARTICLE_WIDTH = 5;
 float PARTICLE_DRAG = 0.06f;
 int randomStart = 400; // random starting position for particles between - & + all directions of this number.
 
 int introCounter = INTRO_TIME;
-int introCounterCounter = 0;
 
 VerletPhysics physics;
 
@@ -64,33 +63,6 @@ public void drawParticles() {
   
 }
 
-
 void removeParticle() {
   physics.particles.remove(physics.particles.size()-1);
 }
-
-
-void checkIntro() {
-  if (tuioCursorList.length != 0) {
-    intro = false;
-    introCounter = INTRO_TIME;
-    introCounterCounter = 0;
-  }
-  introCounter--;
-  if (introCounter <= 0) {
-    introCounterCounter++;
-    introCounter = 0;
-    intro = true;
-  }
-}
-
-void trail() {
-  if (intro == true) {
-    pushStyle();
-    if (frameCount % 10 == 0) {
-      fill(0, 10);
-      rect(0, 0, width, height);
-    }
-    popStyle();
-  }
-} 

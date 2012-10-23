@@ -133,9 +133,7 @@ ArrayList<VerletParticle> particleList;
  //   float jiggleFactor = 4.1;//float jiggleFactor = 0.7 / constrain(peak,1,4); // the idea is to constrain the jiggle the more general background noise in the room there is. See OSC tab for peak.
     // take the particle postions and update the place of the vertex in the model, adding a jitter effect via mappedF.
     
-    int caBehavior = pixelGrid[caStepper];
-    caStepper++;
-    float jiggleFactor = (caBehavior == 1 ? 4.1 : 1);
+    float jiggleFactor = 2; // or 1? used to be 4.1 but maybe thats too much. Lets try 2.
     
     for(int i = 0; i < vec3DList.size(); i++) {
         Vec3D vertexVec3D = particleList.get(i);

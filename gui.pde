@@ -25,14 +25,28 @@ void gui() {
   
   if(PLAY_BEGINNING && frameCount < 450) drawIntroImages(); // play beginning.  
   
-  if(intro)trail();  // DO NOT DELETE THIS !!!! FOR DRAWING BACKGROUND INTRO
+  if(intro) trail(); // creates trail fade effect.
 
   /*------  DRAW ON SCREEN END  -----*/
+  
   g3.camera = currCameraMatrix;
   // Re-enble depth test
   hint(ENABLE_DEPTH_TEST);
   popStyle();
 }
+
+void trail() {
+  if(intro == true) {
+    if (frameCount % 10 == 0) {
+      pushStyle();
+      fill(0, 10);
+      rect(0, 0, width, height);
+      popStyle();
+    }
+  }
+} 
+
+
 
 void drawIntroImages() {
   if(frameCount < 350) {

@@ -23,7 +23,6 @@
 import toxi.geom.*;
 import toxi.geom.mesh.*;
 import toxi.math.*;
-import toxi.math.noise.*;
 import toxi.processing.*;
 import toxi.physics.*;
 import toxi.physics.behaviors.*;
@@ -80,10 +79,6 @@ float lightSpecular[] = {0,222,222,1}; // specular adds a 'shiny' spot to your m
 
 HashMap<Integer, VerletPhysics> planetPhysicsMap; // holds the physics necessary for GPUPlanet2's
 
-/***** CA STUFF *****/
-CA simpleCA; 
-int pixelGrid[] = new int[50*50];
-
 void setup() {
   size(screen.width, screen.height, GLConstants.GLGRAPHICS);
   
@@ -126,9 +121,7 @@ void setup() {
 
   for (int i=0; i<NUM_INIT_WIREFRAMES; i++) 
     planet = new WireframePlanet();
-    
 
-    
   /* create world sphere */
   worldSphere = new WorldSphere();
   /* create star sphere */
@@ -152,15 +145,13 @@ for (int i=0; i<NUM_INIT_GPU2PLANETS; i++) {
 /////////////
   
   
-  // setup default camera position for double-tab gesture.
+  // setup default camera position for triple-tab gesture.
   defaultSceneView = new DefaultSceneView();
 
   noFill();  
 
   scene.camera().interpolateTo(defaultSceneView.getFrame()); // interpolate to default view to begin
 
-
-  generateCA(); // generate ruleset, fills pixelGrid[].
 }
 
 
@@ -170,14 +161,8 @@ void draw() {
      
   if(SHOW_FRAMERATE) if(frameCount % 100 == 0) println(frameRate);
   
-  checkIntro();
-  if (intro == false || introCounterCounter <=1) {
-    if (scrunch5_dis >= 100) {
-      background(255, 0, 0);
-    } else {
-      background(0);
-    }
-  }  
+  checkScreenSaver();
+
   tuioUpdate();  // runs entire tuio operation
 
 //bang(); // AudioPeak note:: dont run this except for testing!!
@@ -196,18 +181,17 @@ void draw() {
 
 
 /////////////////  // every once in a while, create a new vortex
-  if (frameCount % 60 == 0) {
-    if (int(random(100)) <= 20) {
+  if(frameCount % 60 == 0) {
+    if(int(random(100)) <= 20) {
       vortexesQueue.offer(new Vortex());
     } 
   } 
 
-
   drawPlanetIfSelected();
   
-  /***** draw wireframe planets *****/  
-  for (int i = 0; i < planetList.size(); i++) {
-    if (intro == false) {
+  /***** draw wireframe planets *****/
+  if(!intro) {
+    for (int i = 0; i < planetList.size(); i++) {
       planetList.get(i).draw(i);
     }
   }
@@ -229,7 +213,7 @@ void draw() {
   if(!intro) glLightingGo(renderer);
   
   /***** draw world sphere *****/
-  if (intro == false) {
+  if(!intro) {
     worldSphere.draw(renderer);
     starSphere.draw(renderer);
   }
@@ -265,8 +249,10 @@ void draw() {
 
   gui();
   
-  /****** no use for noise at the moment ... */
-  //noiseIncrementer();
+  // every now and then (60*5 is arbitrary. Just a moderately long time, so that tripleTap isn't run so quick)
+  //  when screen saver is running, bring it back to scene center.
+  if(frameCount % 60*15 == 0 && intro == true)
+    tripleTap(); //scene.camera().centerScene();
   
 /*--- CLOSE OF DRAW FUNCTION HERE ---*/
 }
@@ -300,9 +286,27 @@ void drawPlanetIfSelected2(GLGraphics renderer) {
 }
 
 
+/***** INTRO / WORMY TRAILS *****/
+
+void checkScreenSaver() {
+  if(tuioCursorList.length != 0) {
+    intro = false;
+    introCounter = INTRO_TIME;
+  }
+  introCounter--;
+  if(introCounter <= 0) { // countdown finished. begin screensaver.
+    introCounter = 0;
+    intro = true;
+  }
+}
+
+
+
+
 
 
 /* old, here to revert to if necessary */
+/*
 void glLightingGo2(GLGraphics renderer) {
   // will cast the black shaddow on side of spheres.
   renderer.gl.glEnable(GL.GL_LIGHTING);
@@ -333,7 +337,7 @@ void glLightingGo2(GLGraphics renderer) {
   // how does this work? This is causing the ugly drop-off razor of shadow. Want it smooth!
   // changing the first number makes some cool colour effects. Usually 1.
   //renderer.gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[] {211, 1, 1, 1}, 0);
-}
+}*/
 
 
 void glLightingGo(GLGraphics renderer) {

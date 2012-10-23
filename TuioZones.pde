@@ -210,7 +210,7 @@ void addTuioCursor() {
      
   newPosition = new PVector(tuioCursorList[tuioCursorList.length-1][0], tuioCursorList[tuioCursorList.length-1][1]);
 
-  if (dist(lastPosition.x, lastPosition.y, newPosition.x, newPosition.y) <= 16 && lastPosition.x != 0) {
+  if(dist(lastPosition.x, lastPosition.y, newPosition.x, newPosition.y) <= 16 && lastPosition.x != 0) {
     tripleTapCounter++; 
     if(tripleTapCounter == 2) { // 2 because of the way this method is setup. Just trust me.
       tripleTap();
@@ -218,12 +218,9 @@ void addTuioCursor() {
       lastPosition = new PVector(0, 0);
       newPosition = new PVector(0, 0);
     }
-
   }
   
   lastPosition = new PVector(tuioCursorList[tuioCursorList.length-1][0], tuioCursorList[tuioCursorList.length-1][1]);
-  
-
      
  //-------------------------------------------[END NECESSARY FOR TRIPLETAP]
 }
